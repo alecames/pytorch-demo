@@ -1,55 +1,83 @@
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
-from torchvision.datasets import MNIST
-from torchvision.transforms import ToTensor
+import torch.optim as optim
+from tqdm.auto import trange
+import tabulate
 
-# Define the neural network architecture
-class ThreeLayerNet(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size):
-        super(ThreeLayerNet, self).__init__()
-        self.layer1 = nn.Linear(input_size, hidden_size)
-        self.layer2 = nn.Linear(hidden_size, hidden_size)
-        self.layer3 = nn.Linear(hidden_size, output_size)
+# parameters
+BITS = 6
+HIDDEN_LAYER_SIZE = 10
+batch_size = 8
+learning_rate = 0.2
+num_epochs = 1000
+
+parameters = [
+    ["Bits", BITS],
+    ["Hidden Layer Size", HIDDEN_LAYER_SIZE],
+    ["Batch Size", batch_size],
+    ["Learning Rate", learning_rate],
+    ["Epochs", num_epochs],
+]
+print(tabulate.tabulate(parameters, tablefmt="simple"))
+
+
+class NeuralNetwork(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.fc1 = nn.Linear(BITS, 10)
+        self.fc2 = nn.Linear(10, 1)
 
     def forward(self, x):
-        x = torch.relu(self.layer1(x))
-        x = torch.relu(self.layer2(x))
-        x = self.layer3(x)
+        x = torch.relu(self.fc1(x))
+        x = torch.sigmoid(self.fc2(x))
         return x
 
-# Define the input and output sizes
-input_size = 784 # 28 x 28 (MNIST image size)
-hidden_size = 256
-output_size = 10 # number of classes (MNIST has 10 digits)
+# generate training data on the device
+training_data = []
+for i in range(2**BITS):
+    x = [int(j) for j in bin(i)[2:].zfill(BITS)]
+    y = [x.count(1) % 2]
+    training_data.append((torch.tensor(x), torch.tensor(y)))
 
-# Create the neural network object
-net = ThreeLayerNet(input_size, hidden_size, output_size)
+print("Training...")
 
-# Define the loss function and optimizer
-criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.SGD(net.parameters(), lr=0.01)
+network = NeuralNetwork()
+example = torch.randn(1, BITS)
+traced_script_module = torch.jit.trace(network, example)
+optimizer = optim.SGD(network.parameters(), lr=learning_rate)
 
-# Load the MNIST dataset
-train_dataset = MNIST(root='./data', train=True, transform=ToTensor(), download=True)
-train_loader = DataLoader(dataset=train_dataset, batch_size=100, shuffle=True)
-
-# Train the neural network
-num_epochs = 10
-for epoch in range(num_epochs):
-    for i, (images, labels) in enumerate(train_loader):
-        # Reshape the input images
-        images = images.reshape(-1, input_size)
-        
-        # Forward pass
-        outputs = net(images)
-        loss = criterion(outputs, labels)
-        
-        # Backward and optimize
+# train the neural network
+for epoch in trange(num_epochs, bar_format="{percentage:3.0f}% |{bar:20}| {n_fmt}/{total_fmt} | {elapsed}"):
+    running_loss = 0.0
+    for i, data in enumerate(training_data):
+        inputs, labels = data
         optimizer.zero_grad()
+        outputs = network(inputs.float())
+        loss = nn.MSELoss()(outputs, labels.float())
         loss.backward()
         optimizer.step()
-        
-        # Print loss at every 100th iteration
-        if (i+1) % 100 == 0:
-            print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}'.format(epoch+1, num_epochs, i+1, len(train_loader), loss.item()))
+        running_loss += loss.item()
+        if i % batch_size == batch_size - 1:
+            running_loss = 0.0
+
+print('Finished Training')
+
+# generate testing data
+testing_data = []
+for i in range(2**BITS):
+    x = [int(j) for j in bin(i)[2:].zfill(BITS)]
+    y = [x.count(1) % 2]
+    testing_data.append((torch.tensor(x), torch.tensor(y)))
+
+# the the network
+correct = 0
+total = 0
+with torch.no_grad():
+    for data in testing_data:
+        inputs, labels = data
+        outputs = network(inputs.float())
+        predicted = (outputs > 0.5).float()
+        total += labels.size(0)
+        correct += (predicted == labels.float()).sum().item()
+print("Testing...")
+print(f'Results on testing {2**BITS} inputs: {correct}/{total} ({100 * correct / total}%)')
