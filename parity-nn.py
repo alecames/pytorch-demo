@@ -17,8 +17,6 @@ parameters = [
 print(tabulate.tabulate(parameters, tablefmt="simple"))
 
 # create the neural network using the Module class
-
-
 class NeuralNetwork(nn.Module):
     def __init__(self):
         super().__init__()

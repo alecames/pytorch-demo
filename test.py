@@ -1,19 +1,24 @@
 import random
-import sys
 import torch
+import requests
 
-FILENAME = sys.argv[1] if len(sys.argv) > 1 else "parity-5b-10h-1000e.pt"
+# get model
+print(f"Loading model...")
+url = "https://github.com/alecames/pytorch-seminar/raw/master/parity-5b-10h-1000e.pt"
+r = requests.get(url, allow_redirects=True)
+open('parity-5b-10h-1000e.pt', 'wb').write(r.content)
+NAME = "parity-5b-10h-1000e.pt"
 
-print(f"Loading model from {FILENAME}...")
-
-loaded_model = torch.jit.load(FILENAME)
+# load model with torch
+loaded_model = torch.jit.load(NAME)
 bits = loaded_model.fc1.in_features
 
-print(f"Loaded trained model with {bits} bits and {loaded_model.fc1.out_features} hidden layer neurons")
+print(f"Loeaded '{NAME}'\n{bits} input neurons\n{loaded_model.fc1.out_features} hidden layer neurons")
 
+# switch to evaluation mode
 loaded_model.eval()
 
-# test the model
+# test the model on random or user input
 with torch.no_grad():
 	while True:
 		try:
