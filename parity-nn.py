@@ -28,7 +28,6 @@ class NeuralNetwork(nn.Module):
         x = torch.sigmoid(self.fc2(x))
         return x
 
-
 # generate training data on the device
 training_data = []
 for i in range(2**BITS):
@@ -39,7 +38,6 @@ for i in range(2**BITS):
 # split the data into training and testing
 training_data = training_data[:int(len(training_data) * 0.75)]
 testing_data = training_data[int(len(training_data) * 0.25):]
-
 
 print("Training...")
 
@@ -62,7 +60,6 @@ for epoch in trange(NUM_EPOCHS, bar_format="{percentage:3.0f}% |{bar:20}| {n_fmt
         #     running_loss = 0.0
 
 print('Finished Training')
-
 
 # the the network
 correct = 0
