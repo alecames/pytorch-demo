@@ -6,8 +6,8 @@ import requests
 print(f"Loading model...")
 url = "https://github.com/alecames/pytorch-seminar/raw/master/parity-5b-10h-1000e.pt"
 r = requests.get(url, allow_redirects=True)
-open('parity-5b-10h-1000e.pt', 'wb').write(r.content)
-NAME = "parity-5b-10h-1000e.pt"
+open('parity-6b-20h-1000e.pt', 'wb').write(r.content)
+NAME = "parity-6b-20h-1000e.pt"
 
 # load model with torch
 loaded_model = torch.jit.load(NAME)

@@ -6,7 +6,7 @@ import tabulate
 BITS = 5
 HIDDEN_LAYER_SIZE = 10
 NUM_EPOCHS = 1000
-LEARNING_RATE = 0.2
+LEARNING_RATE = 0.15
 
 parameters = [
     ["Bits", BITS],
