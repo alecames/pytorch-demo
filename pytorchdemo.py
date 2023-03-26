@@ -6,7 +6,7 @@ HIDDEN_LAYER_SIZE = 10
 NUM_EPOCHS = 1000
 LEARNING_RATE = 0.15
 
-# # generate training data on the device
+# generate training data
 training_data = [] 
 for i in range(2**BITS): 
 	x = [int(j) for j in bin(i)[2:].zfill(BITS)] 
@@ -22,10 +22,9 @@ training_data = training_data[:int(len(training_data) * 0.75)]
 # training_data = [
 # 	([0, 0, 0, 0, 0], [0]),
 # 	([0, 0, 0, 0, 1], [1]),
-# 	([0, 0, 0, 1, 0], [1]),
-# 	([0, 0, 0, 1, 1], [0]),
 # 	([0, 0, 1, 0, 0], [1]),
 # 	...
+# 	([1, 1, 1, 1, 1], [0])
 # ]
 	
 # create the neural network using the Module class
@@ -48,9 +47,9 @@ class NeuralNetwork(nn.Module):
 print("Training...")
 
 # create the neural network
-network = NeuralNetwork()#.to("cuda")	 # move the network to the GPU (optional)
+network = NeuralNetwork() # .to("cuda")	 # move the network to the GPU (optional)
 loss = nn.MSELoss() # define the loss function
-optimizer = optim.SGD(network.parameters(), lr=LEARNING_RATE) # define the optimizer
+optimizer = optim.SGD(network.parameters(), lr=0.15) # define the optimizer
 
 # train the neural network
 for epoch in range(NUM_EPOCHS):
@@ -92,3 +91,4 @@ for data in training_data:
 	correct += (predicted == labels).sum().item()
 
 print(f"Accuracy: {100 * correct / total}%") # Accuracy: 96.875%
+
