@@ -15,6 +15,9 @@ for i in range(2**BITS):
 	y = torch.tensor(y, dtype=torch.float32)
 	training_data.append((x, y)) 
 
+# dont train on all the data
+training_data = training_data[:int(len(training_data) * 0.75)]
+
 # this looks like
 # training_data = [
 # 	([0, 0, 0, 0, 0], [0]),
